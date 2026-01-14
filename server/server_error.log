@@ -1,0 +1,11 @@
+2026-01-10T15:54:52.081Z - Must supply api_key
+Error: Must supply api_key
+    at ensureOption (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\utils\ensureOption.js:19:13)
+    at Object.sign_request (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\utils\index.js:1151:16)
+    at Object.process_request_params (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\utils\index.js:1203:22)
+    at call_api (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\uploader.js:474:18)
+    at Object.upload (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\uploader.js:53:10)
+    at Object.upload (C:\Tanish\Web\Thumblify\server\node_modules\cloudinary\lib\utils\index.js:1402:21)
+    at generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:168:52)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
