@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import Thumbnail from "../models/Thumbnail.js";
 import cloudinary from "../configs/cloudinary.js";
 
@@ -62,7 +63,8 @@ const templatePackPrompts = {
 export const generateThumbnail = async (req: Request, res: Response) => {
   try {
     // VALIDATE CLOUDINARY FIRST
-    if (!process.env.CLOUDINARY_URL || !process.env.CLOUDINARY_URL.startsWith("cloudinary://")) {
+    if (!process.env.CLOUDINARY_URL) {
+      // Note: we check strict protocol in configs/cloudinary.ts, here we just check presence
       console.error("Cloudinary not configured properly");
       return res.status(500).json({
         message: "Server configuration error: Image upload service not available",
@@ -123,30 +125,23 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     let faceDescription = "";
 
     if (req.file) {
-      fs.appendFileSync(path.join(process.cwd(), "debug.log"), `\n--- Face Upload Start ---\n`);
-      fs.appendFileSync(path.join(process.cwd(), "debug.log"), `File received: ${req.file.originalname} | Size: ${req.file.size} | Mime: ${req.file.mimetype}\n`);
+      console.log(`--- Face Upload Start ---`);
+      console.log(`File received: ${req.file.originalname} | Size: ${req.file.size} | Mime: ${req.file.mimetype}`);
 
-      console.log("Processing Face Upload...");
-
-      const imagesDir = path.join(process.cwd(), "images");
-      if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
-
-      const tempUploadPath = path.join(imagesDir, `upload-${Date.now()}.png`);
+      const tempDir = os.tmpdir();
+      const tempUploadPath = path.join(tempDir, `upload-${Date.now()}.png`);
       fs.writeFileSync(tempUploadPath, req.file.buffer);
 
       try {
         // Upload Reference to Cloudinary
         console.log("Uploading to Cloudinary...");
-        fs.appendFileSync(path.join(process.cwd(), "debug.log"), "Uploading to Cloudinary...\n");
 
         const uploadRef = await cloudinary.uploader.upload(tempUploadPath, { resource_type: "image" });
         const refUrl = uploadRef.secure_url;
         console.log("Face uploaded to Cloudinary:", refUrl);
-        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face uploaded to Cloudinary: ${refUrl}\n`);
 
         // ANALYZE FACE with Gemini 1.5 Flash
         console.log("Analyzing face with Gemini 1.5 Flash...");
-        fs.appendFileSync(path.join(process.cwd(), "debug.log"), "Analyzing face with Gemini 1.5 Flash...\n");
 
         const analysisClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1beta' });
 
@@ -167,17 +162,14 @@ export const generateThumbnail = async (req: Request, res: Response) => {
 
         faceDescription = analysisResp?.candidates?.[0]?.content?.parts?.[0]?.text || "";
         console.log("Face Description Generated:", faceDescription);
-        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face Description Generated: ${faceDescription}\n`);
 
       } catch (err) {
         console.error("Face Analysis Failed:", err);
-        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face Analysis Failed: ${JSON.stringify(err)}\n`);
       } finally {
         if (fs.existsSync(tempUploadPath)) fs.unlinkSync(tempUploadPath);
       }
     } else {
       console.log("No file uploaded in req.file");
-      fs.appendFileSync(path.join(process.cwd(), "debug.log"), "No file uploaded in req.file\n");
     }
 
     /* ----------------------------------
@@ -207,7 +199,6 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     prompt += `The thumbnail should be ${aspect_ratio || "16:9"}, visually stunning, designed to maximize click-through rate.`;
 
     console.log("FINAL GENERATION PROMPT:", prompt);
-    fs.appendFileSync(path.join(process.cwd(), "debug.log"), `FINAL GENERATION PROMPT: ${prompt}\n\n`);
 
     /* ----------------------------------
        GENERATE THUMBNAIL (Imagen 4)
@@ -238,10 +229,9 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     /* ----------------------------------
        SAVE & UPLOAD RESULT
     ---------------------------------- */
-    const imagesDir = path.join(process.cwd(), "images");
-    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
-
-    const filePath = path.join(imagesDir, `thumb-${Date.now()}.png`);
+    // FIX: Use /tmp directory for serverless environment
+    const tempDir = os.tmpdir();
+    const filePath = path.join(tempDir, `thumb-${Date.now()}.png`);
     fs.writeFileSync(filePath, imageBuffer);
 
     const uploadResult = await cloudinary.uploader.upload(filePath, {
@@ -259,7 +249,10 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     user.credits -= 1;
     await user.save();
 
-    fs.unlinkSync(filePath);
+    // Cleanup temp file
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
     return res.json({
       message: "Thumbnail generated successfully",
@@ -268,8 +261,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Generate Thumbnail Error:", error);
-    fs.appendFileSync(path.join(process.cwd(), 'server_error.log'), `${new Date().toISOString()} - ${error.message}\n${error.stack}\n\n`);
-    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `ERROR: ${error.message}\n${error.stack}\n\n`);
+    // Don't try to write to log file in Vercel
 
     return res.status(500).json({
       message: error.message || "Internal server error",
