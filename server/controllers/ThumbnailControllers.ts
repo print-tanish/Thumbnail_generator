@@ -114,23 +114,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     // @ts-ignore
     const { GoogleGenAI } = await import("@google/genai");
 
-    // Runtime fix for Cloudinary URL if needed
-    if (process.env.CLOUDINARY_URL && process.env.CLOUDINARY_URL.startsWith("CLOUDINARY_URL=")) {
-      process.env.CLOUDINARY_URL = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
-    }
-
-    // Explicit Cloudinary Config
-    if (process.env.CLOUDINARY_URL) {
-      const cleanUrl = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
-      const matches = cleanUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^]+)$/);
-      if (matches) {
-        cloudinary.config({
-          cloud_name: matches[3],
-          api_key: matches[1],
-          api_secret: matches[2]
-        });
-      }
-    }
+    // Cloudinary config logic moved to server/configs/cloudinary.ts
 
     /* ----------------------------------
        HANDLE FACE UPLOAD (Optional)
