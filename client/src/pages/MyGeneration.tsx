@@ -19,7 +19,7 @@ const MyGenerations = () => {
 
   const fetchThumbnails = async () => {
     try {
-      const { data } = await axios.get("http://localhost:3000/api/user/thumbnails", { withCredentials: true });
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/thumbnails`, { withCredentials: true });
       if (data.thumbnail) setThumbnails(data.thumbnail);
     } catch (error) {
       console.error(error);
@@ -38,7 +38,7 @@ const MyGenerations = () => {
 
     try {
       // Assuming there is a delete endpoint, if not this might fail or need implementation
-      await axios.delete(`http://localhost:3000/api/thumbnail/${id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/thumbnail/${id}`, { withCredentials: true });
       setThumbnails((prev) => prev.filter((t) => t._id !== id));
     } catch (error) {
       console.error("Delete error", error);

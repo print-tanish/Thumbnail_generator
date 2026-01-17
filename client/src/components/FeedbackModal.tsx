@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { Star, X, Loader2, MessageSquarePlus } from "lucide-react";
+import { Star, X, MessageSquarePlus } from "lucide-react";
 import { Button } from "./ui";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -22,7 +22,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
         setLoading(true);
         try {
             await axios.post(
-                "http://localhost:3000/api/feedback",
+                `${import.meta.env.VITE_API_URL}/api/feedback`,
                 { rating, comment },
                 { withCredentials: true }
             );

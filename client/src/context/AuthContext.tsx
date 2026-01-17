@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const checkAuth = async () => {
         try {
-            const { data } = await axios.get("http://localhost:3000/api/auth/verify", {
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/verify`, {
                 withCredentials: true,
             });
             setUser(data.user);
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (userData: any) => {
         const { data } = await axios.post(
-            "http://localhost:3000/api/auth/login",
+            `${import.meta.env.VITE_API_URL}/api/auth/login`,
             userData,
             { withCredentials: true }
         );
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const register = async (userData: any) => {
         const { data } = await axios.post(
-            "http://localhost:3000/api/auth/register",
+            `${import.meta.env.VITE_API_URL}/api/auth/register`,
             userData,
             { withCredentials: true }
         );
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const googleLogin = async (credential: string) => {
         try {
             const { data } = await axios.post(
-                "http://localhost:3000/api/auth/google",
+                `${import.meta.env.VITE_API_URL}/api/auth/google`,
                 { credential },
                 { withCredentials: true }
             );
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const logout = async () => {
-        await axios.post("http://localhost:3000/api/auth/logout", {}, { withCredentials: true });
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {}, { withCredentials: true });
         setUser(null);
         navigate("/login");
     };

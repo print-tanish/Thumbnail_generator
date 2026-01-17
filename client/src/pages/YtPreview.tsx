@@ -19,7 +19,7 @@ export default function YtPreview() {
     const fetchThumbnail = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get(`http://localhost:3000/api/user/thumbnail/${id}`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/thumbnail/${id}`, {
           withCredentials: true
         });
         const found = data.thumbnail;

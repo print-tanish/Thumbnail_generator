@@ -79,7 +79,7 @@ export default function Generate() {
     const fetchThumbnail = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get(`http://localhost:3000/api/user/thumbnail/${id}`, { withCredentials: true });
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/thumbnail/${id}`, { withCredentials: true });
         if (data.thumbnail) {
           const found = data.thumbnail;
           setThumbnail(found);
@@ -123,7 +123,7 @@ export default function Generate() {
       }
 
       const { data } = await axios.post(
-        "http://localhost:3000/api/thumbnail/generate-thumbnail",
+        `${import.meta.env.VITE_API_URL}/api/thumbnail/generate-thumbnail`,
         formData,
         {
           withCredentials: true,
