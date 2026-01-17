@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import session from "express-session";
@@ -18,13 +18,21 @@ declare module "express-session" {
   }
 }
 
+// Load environment variables FIRST
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-if (!process.env.MONGODB_URI) {
-  console.error("Critical Error: MONGODB_URI is not defined.");
+// Validate critical environment variables
+const requiredEnvVars = ['MONGODB_URI', 'SESSION_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`Critical Error: Missing environment variables: ${missingEnvVars.join(', ')}`);
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
 }
 
 /* ---------- MIDDLEWARE ---------- */
@@ -35,7 +43,7 @@ const corsOptions = {
     "http://localhost:3000",
     "http://localhost:5174",
     "https://nailclick.vercel.app",
-    "https://nailclick-server.vercel.app" // Add your backend URL too
+    "https://nailclick-server.vercel.app"
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -53,17 +61,16 @@ const corsOptions = {
   ]
 };
 
-// Apply CORS before other middleware
 app.use(cors(corsOptions));
-// app.options(/.*/, cors(corsOptions)); // Removed to prevent Express 5 wildcard issues
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1);
 
-// Connect to DB immediately (Mongoose buffers requests)
-connectDB().catch(err => console.error("Top-level DB connection error:", err));
+// Connect to DB
+connectDB().catch(err => {
+  console.error("Database connection error:", err);
+});
 
 // Session middleware
 app.use(
@@ -72,12 +79,12 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      maxAge: 1000 * 60 * 60 * 24 * 7,
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
-    store: (MongoStore as any).create({
+    store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI as string,
       collectionName: "sessions",
     }),
@@ -94,7 +101,6 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-// Health check endpoint
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ status: "OK" });
 });
@@ -105,7 +111,7 @@ app.use('/api/user', UserRouter);
 app.use('/api/feedback', FeedbackRouter);
 
 // Error handling middleware
-app.use((err: any, req: Request, res: Response, next: any) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error("Error:", err);
   res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",
