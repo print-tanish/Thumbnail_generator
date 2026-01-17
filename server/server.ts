@@ -63,26 +63,25 @@ app.use(
 
 /* ---------- SERVER ---------- */
 
-const startServer = async () => {
-  try {
-    await connectDB();
+/* ---------- SERVER ---------- */
 
-    app.get("/", (req: Request, res: Response) => {
-      res.send("Server is Live!");
-    });
+// Connect to DB immediately (Mongoose buffers requests)
+connectDB();
 
-    app.use("/api/auth", AuthRouter);
-    app.use('/api/thumbnail', ThumbnailRouter);
-    app.use('/api/user', UserRouter);
-    app.use('/api/feedback', FeedbackRouter);
+app.get("/", (req: Request, res: Response) => {
+  res.send("Server is Live!");
+});
 
-    app.listen(port, () => {
-      console.log(`Server is running at http://localhost:${port}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
-};
+app.use("/api/auth", AuthRouter);
+app.use('/api/thumbnail', ThumbnailRouter);
+app.use('/api/user', UserRouter);
+app.use('/api/feedback', FeedbackRouter);
 
-startServer();
+// Only listen if not running on Vercel (Vercel handles the server)
+if (process.env.VERCEL !== "1") {
+  app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+  });
+}
+
+export default app;
