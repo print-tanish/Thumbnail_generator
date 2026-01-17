@@ -6,6 +6,7 @@ type User = {
     _id: string;
     name: string;
     email: string;
+    credits?: number;
 };
 
 type AuthContextType = {
@@ -14,6 +15,7 @@ type AuthContextType = {
     loading: boolean;
     login: (userData: any) => Promise<void>;
     register: (userData: any) => Promise<void>;
+    googleLogin: (credential: string) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
 };
@@ -62,6 +64,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         navigate("/");
     };
 
+    const googleLogin = async (credential: string) => {
+        try {
+            const { data } = await axios.post(
+                "http://localhost:3000/api/auth/google",
+                { credential },
+                { withCredentials: true }
+            );
+            setUser(data.user);
+            navigate("/");
+        } catch (error) {
+            console.error("Google Login Error:", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         await axios.post("http://localhost:3000/api/auth/logout", {}, { withCredentials: true });
         setUser(null);
@@ -76,6 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 loading,
                 login,
                 register,
+                googleLogin,
                 logout,
                 checkAuth,
             }}

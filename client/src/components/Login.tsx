@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SoftBackdrop from "./SoftBackdrop";
 import { useAuth } from "../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const [state, setState] = useState<"login" | "register">("login");
@@ -11,7 +12,7 @@ export default function Login() {
     password: "",
   });
 
-  const { login, register } = useAuth();
+  const { login, register, googleLogin } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -104,6 +105,35 @@ export default function Login() {
             {state === "login" ? "Login" : "Sign up"}
           </button>
 
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-[#0f0f0f] px-2 text-gray-400">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                if (credentialResponse.credential) {
+                  try {
+                    await googleLogin(credentialResponse.credential);
+                  } catch (error) {
+                    console.error("Google Login Failed", error);
+                    alert("Google Login failed");
+                  }
+                }
+              }}
+              onError={() => {
+                alert('Login Failed');
+              }}
+              theme="filled_black"
+              shape="circle"
+            />
+          </div>
+
           <p
             onClick={() =>
               setState((prev) => (prev === "login" ? "register" : "login"))
@@ -118,7 +148,7 @@ export default function Login() {
             </span>
           </p>
         </form>
-      </div>
+      </div >
     </>
   );
 }

@@ -9,3 +9,34 @@ Error: Must supply api_key
     at generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:168:52)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
 
+2026-01-14T11:51:25.562Z - {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1alpha, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+ApiError: {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1alpha, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+    at throwErrorIfNotOK (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:860:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:493:9)
+    at async Models.Models.generateImages (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\models.ts:417:12)
+    at async generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:156:22)
+
+2026-01-14T11:51:41.631Z - {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1alpha, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+ApiError: {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1alpha, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+    at throwErrorIfNotOK (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:860:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:493:9)
+    at async Models.Models.generateImages (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\models.ts:417:12)
+    at async generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:156:22)
+
+2026-01-14T11:55:43.690Z - exception TypeError: fetch failed sending request
+Error: exception TypeError: fetch failed sending request
+    at <anonymous> (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:634:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Models.Models.generateImages (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\models.ts:417:12)
+    at async generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:156:22)
+
+2026-01-14T11:58:01.399Z - {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1beta, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+ApiError: {"error":{"code":404,"message":"models/imagen-3.0-generate-001 is not found for API version v1beta, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+    at throwErrorIfNotOK (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:860:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\_api_client.ts:493:9)
+    at async Models.Models.generateImages (C:\Tanish\Web\Thumblify\server\node_modules\@google\genai\src\models.ts:417:12)
+    at async generateThumbnail (C:\Tanish\Web\Thumblify\server\controllers\ThumbnailControllers.ts:156:22)
+

@@ -50,6 +50,19 @@ const colorSchemeDescriptions = {
 /* ----------------------------------
    GENERATE THUMBNAIL
 ---------------------------------- */
+/* ----------------------------------
+   TEMPLATE PACK PROMPTS
+---------------------------------- */
+const templatePackPrompts = {
+  "MrBeast": "hyper-dramatic MrBeast style thumbnail, extreme facial expression, open mouth shock, high saturation, red arrows, massive scale elements, high stakes atmosphere, viral aesthetic, clean bold text",
+  "Podcast": "professional podcast thumbnail, studio lighting, two people talking, microphone prominently visible, blurred background, split screen composition, high quality portraiture, engaging conversation vibe",
+  "Gaming": "explosive gaming thumbnail, dynamic action shot, game character or avatar, glitch effects, neon lighting, speed lines, intense energy, victory or shock moment, esports aesthetic",
+  "Finance": "finance and crypto thumbnail, rising green charts, money elements, gold coins, shocked or serious expression, professional suit, blurred city background, clean minimalistic text overlay",
+} as const;
+
+/* ----------------------------------
+   GENERATE THUMBNAIL
+---------------------------------- */
 export const generateThumbnail = async (req: Request, res: Response) => {
   try {
     const { userId } = req.session;
@@ -64,8 +77,20 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       style,
       aspect_ratio,
       color_scheme,
-      text_overlay,
-    } = req.body;
+      templatePack,
+    } = req.body; // req.body might be textual if multipart, express/multer handles this.
+
+    // Check Credits First
+    const User = (await import("../models/User.js")).default;
+    const user = await User.findById(userId);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.credits < 1) {
+      return res.status(403).json({
+        message: "Insufficient credits",
+        error: "insufficient_credits"
+      });
+    }
 
     /* ----------------------------------
        CREATE INITIAL DB ENTRY
@@ -77,21 +102,119 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       style,
       aspect_ratio,
       color_scheme,
-      text_overlay,
+      templatePack,
       isGenerating: true,
     });
+
+    // Ensure dotenv & GenAI
+    // @ts-ignore
+    const dotenv = await import("dotenv");
+    dotenv.config();
+
+    // @ts-ignore
+    const { GoogleGenAI } = await import("@google/genai");
+
+    // Runtime fix for Cloudinary URL if needed
+    if (process.env.CLOUDINARY_URL && process.env.CLOUDINARY_URL.startsWith("CLOUDINARY_URL=")) {
+      process.env.CLOUDINARY_URL = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
+    }
+
+    // Explicit Cloudinary Config
+    if (process.env.CLOUDINARY_URL) {
+      const cleanUrl = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
+      const matches = cleanUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^]+)$/);
+      if (matches) {
+        cloudinary.config({
+          cloud_name: matches[3],
+          api_key: matches[1],
+          api_secret: matches[2]
+        });
+      }
+    }
+
+    /* ----------------------------------
+       HANDLE FACE UPLOAD (Optional)
+    ---------------------------------- */
+    let faceDescription = "";
+
+    // @ts-ignore
+    if (req.file) {
+      fs.appendFileSync(path.join(process.cwd(), "debug.log"), `\n--- Face Upload Start ---\n`);
+      fs.appendFileSync(path.join(process.cwd(), "debug.log"), `File received: ${req.file.originalname} | Size: ${req.file.size} | Mime: ${req.file.mimetype}\n`);
+
+      console.log("Processing Face Upload...");
+
+      const imagesDir = path.join(process.cwd(), "images");
+      if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+      const tempUploadPath = path.join(imagesDir, `upload-${Date.now()}.png`);
+      // @ts-ignore
+      fs.writeFileSync(tempUploadPath, req.file.buffer);
+
+      try {
+        // Upload Reference to Cloudinary
+        console.log("Uploading to Cloudinary...");
+        fs.appendFileSync(path.join(process.cwd(), "debug.log"), "Uploading to Cloudinary...\n");
+
+        const uploadRef = await cloudinary.uploader.upload(tempUploadPath, { resource_type: "image" });
+        const refUrl = uploadRef.secure_url;
+        console.log("Face uploaded to Cloudinary:", refUrl);
+        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face uploaded to Cloudinary: ${refUrl}\n`);
+
+        // ANALYZE FACE with Gemini 1.5 Flash
+        console.log("Analyzing face with Gemini 1.5 Flash...");
+        fs.appendFileSync(path.join(process.cwd(), "debug.log"), "Analyzing face with Gemini 1.5 Flash...\n");
+
+        const analysisClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1beta' });
+
+        const fileBuffer = fs.readFileSync(tempUploadPath);
+        const imageBase64 = fileBuffer.toString("base64");
+
+        const analysisResp = await analysisClient.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: [
+            {
+              parts: [
+                { text: "Describe the person's face in this image in extreme detail (gender, age, hair style and color, eye color, facial hair, glasses, distinct features). Output ONLY the physical description." },
+                { inlineData: { mimeType: "image/png", data: imageBase64 } }
+              ]
+            }
+          ]
+        });
+
+        faceDescription = analysisResp?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        console.log("Face Description Generated:", faceDescription);
+        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face Description Generated: ${faceDescription}\n`);
+
+      } catch (err) {
+        console.error("Face Analysis Failed:", err);
+        fs.appendFileSync(path.join(process.cwd(), "debug.log"), `Face Analysis Failed: ${JSON.stringify(err)}\n`);
+      } finally {
+        if (fs.existsSync(tempUploadPath)) fs.unlinkSync(tempUploadPath);
+      }
+    } else {
+      console.log("No file uploaded in req.file");
+      fs.appendFileSync(path.join(process.cwd(), "debug.log"), "No file uploaded in req.file\n");
+    }
 
     /* ----------------------------------
        BUILD PROMPT
     ---------------------------------- */
-    let prompt = `Create a ${stylePrompts[style as keyof typeof stylePrompts]
-      } thumbnail for: "${title}". `;
+    let prompt = `Create a ${stylePrompts[style as keyof typeof stylePrompts] || "custom"} thumbnail for: "${title}". `;
+
+    if (templatePack && templatePackPrompts[templatePack as keyof typeof templatePackPrompts]) {
+      prompt += `\nSTYLE OVERRIDE: ${templatePackPrompts[templatePack as keyof typeof templatePackPrompts]}. `;
+    }
+
+    if (faceDescription) {
+      prompt += `\nCHARACTER DETAILS: The main character in the thumbnail MUST look like this: ${faceDescription}. `;
+      prompt += `Ensure the facial features, hair, and age match exactly. `;
+    }
 
     if (color_scheme) {
       prompt += `Use a ${colorSchemeDescriptions[
         color_scheme as keyof typeof colorSchemeDescriptions
-      ]
-        } color scheme. `;
+      ] || "vibrant"} color scheme. `;
     }
 
     if (user_prompt) {
@@ -101,116 +224,71 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     prompt += `The thumbnail should be ${aspect_ratio || "16:9"
       }, visually stunning, designed to maximize click-through rate.`;
 
-    /* ----------------------------------
-       GEMINI / IMAGEN CONFIG
-    ---------------------------------- */
-    // Ensure dotenv is loaded
-    // @ts-ignore
-    const dotenv = await import("dotenv");
-    dotenv.config();
-
-    console.log("DEBUG: GEMINI_API_KEY exists?", !!process.env.GEMINI_API_KEY);
-
-    // Runtime fix for common .env paste error
-    if (process.env.CLOUDINARY_URL && process.env.CLOUDINARY_URL.startsWith("CLOUDINARY_URL=")) {
-      console.log("DEBUG: Fixing malformed CLOUDINARY_URL");
-      process.env.CLOUDINARY_URL = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
-    }
-
-    // @ts-ignore
-    const { GoogleGenAI } = await import("@google/genai");
-    // trying v1alpha as Imagen 3 is often in alpha/preview
-    const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1alpha' });
+    console.log("FINAL GENERATION PROMPT:", prompt);
+    fs.appendFileSync(path.join(process.cwd(), "debug.log"), `FINAL GENERATION PROMPT: ${prompt}\n\n`);
 
     /* ----------------------------------
-       GENERATE IMAGE (Imagen 4)
+       GENERATE THUMBNAIL (Imagen 4)
     ---------------------------------- */
+    const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: 'v1beta' });
+
     const response = await client.models.generateImages({
       model: "imagen-4.0-generate-001",
       prompt: prompt,
       config: {
         numberOfImages: 1,
         aspectRatio: aspect_ratio || "16:9",
-        // outputMimeType: "image/png" // Optional, defaults to png usually
       }
     });
 
-    console.log("AI Response received");
-    // console.log(JSON.stringify(response, null, 2)); // excessive logging might be bad, but helpful for debug
-
-    // Check for image data from Imagen 3 response
-    // Response structure for generateImages typically contains 'generatedImages' array
+    // Check for image data
     const generatedImage = response?.generatedImages?.[0]?.image;
 
     if (!generatedImage || !generatedImage.imageBytes) {
       console.error("Invalid AI Response:", JSON.stringify(response, null, 2));
+      thumbnail.isGenerating = false;
+      await thumbnail.save();
       throw new Error("No image generated or invalid response format");
     }
 
     const imageBuffer = Buffer.from(generatedImage.imageBytes, "base64");
 
     /* ----------------------------------
-       SAVE TEMP FILE
+       SAVE & UPLOAD RESULT
     ---------------------------------- */
     const imagesDir = path.join(process.cwd(), "images");
-    if (!fs.existsSync(imagesDir)) {
-      fs.mkdirSync(imagesDir, { recursive: true });
-    }
+    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
 
     const filePath = path.join(imagesDir, `thumb-${Date.now()}.png`);
     fs.writeFileSync(filePath, imageBuffer);
-    console.log("Temp file saved:", filePath);
-
-    /* ----------------------------------
-       UPLOAD TO CLOUDINARY
-    ---------------------------------- */
-    /* ----------------------------------
-       UPLOAD TO CLOUDINARY
-    ---------------------------------- */
-    console.log("Uploading to Cloudinary...");
-
-    // Explicitly configure Cloudinary to ensure keys are loaded
-    if (process.env.CLOUDINARY_URL) {
-      // Handle potential double prefix
-      const cleanUrl = process.env.CLOUDINARY_URL.replace("CLOUDINARY_URL=", "");
-      // Regex to parse: cloudinary://<api_key>:<api_secret>@<cloud_name>
-      const matches = cleanUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^]+)$/);
-      if (matches) {
-        cloudinary.config({
-          cloud_name: matches[3],
-          api_key: matches[1],
-          api_secret: matches[2]
-        });
-        console.log("DEBUG: Manually configured Cloudinary with parsed credentials");
-      } else {
-        console.log("DEBUG: Could not parse CLOUDINARY_URL, relying on auto-config");
-      }
-    }
 
     const uploadResult = await cloudinary.uploader.upload(filePath, {
       resource_type: "image",
     });
-    console.log("Cloudinary Upload Success:", uploadResult.secure_url);
 
     /* ----------------------------------
-       UPDATE DB
+       UPDATE DB & DEDUCT CREDITS
     ---------------------------------- */
     thumbnail.image_url = uploadResult.secure_url;
     thumbnail.isGenerating = false;
     await thumbnail.save();
+
+    // Deduct credit
+    user.credits -= 1;
+    await user.save();
 
     fs.unlinkSync(filePath);
 
     return res.json({
       message: "Thumbnail generated successfully",
       thumbnail,
+      remainingCredits: user.credits
     });
   } catch (error: any) {
     console.error("Generate Thumbnail Error:", error);
     fs.appendFileSync(path.join(process.cwd(), 'server_error.log'), `${new Date().toISOString()} - ${error.message}\n${error.stack}\n\n`);
+    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), `ERROR: ${error.message}\n${error.stack}\n\n`);
 
-    // If we have a thumbnail ID, we might want to mark it as failed in DB? 
-    // For now just return error.
     return res.status(500).json({
       message: error.message || "Internal server error",
       stack: error.stack

@@ -1,59 +1,61 @@
-import { footerData } from "../data/footer";
-import { DribbbleIcon, LinkedinIcon, TwitterIcon, YoutubeIcon } from "lucide-react";
-import { motion } from "motion/react";
-import type { IFooterLink } from "../types";
+import { DribbbleIcon, LinkedinIcon, TwitterIcon, YoutubeIcon, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
     return (
-        <footer className="flex flex-wrap justify-center md:justify-between overflow-hidden gap-10 md:gap-20 mt-40 py-6 px-6 md:px-16 lg:px-24 xl:px-32 text-[13px] text-gray-500">
-            <motion.div className="flex flex-wrap items-start gap-10 md:gap-35"
-                initial={{ x: -150, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 280, damping: 70, mass: 1 }}
-            >
-                <Link to="/">
-                    <img className="size-8 aspect-square" src="/favicon.svg" alt="footer logo" width={32} height={32} />
-                </Link>
-                {footerData.map((section, index) => (
-                    <div key={index}>
-                        <p className="text-slate-100 font-semibold">{section.title}</p>
-                        <ul className="mt-2 space-y-2">
-                            {section.links.map((link: IFooterLink, index: number) => (
-                                <li key={index}>
-                                    <Link to={link.href} className="hover:text-pink-600 transition">
-                                        {link.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+        <footer className="relative border-t border-white/5 bg-zinc-950 pt-20 pb-10 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between gap-12 mb-20">
+                    <div className="max-w-sm">
+                        <Link to="/" className="flex items-center gap-2 mb-6">
+                            <Sparkles className="text-pink-500" />
+                            <span className="font-bold text-2xl tracking-tight text-white">ClickNail AI</span>
+                        </Link>
+                        <p className="text-zinc-400 leading-relaxed">
+                            AI-powered thumbnails that drive clicks. Stop wasting time on design and start creating content.
+                        </p>
                     </div>
-                ))}
-            </motion.div>
-            <motion.div className="flex flex-col max-md:items-center max-md:text-center gap-2 items-end"
-                initial={{ x: 150, opacity: 0 }}
-                whileInView={{ x: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 280, damping: 70, mass: 1 }}
-            >
-                <p className="max-w-60">Making every customer feel valued—no matter the size of your audience.</p>
-                <div className="flex items-center gap-4 mt-3">
-                    <a href="https://dribbble.com/prebuiltui" target="_blank" rel="noreferrer">
-                        <DribbbleIcon className="size-5 hover:text-pink-500" />
-                    </a>
-                    <a href="https://www.linkedin.com/company/prebuiltui" target="_blank" rel="noreferrer">
-                        <LinkedinIcon className="size-5 hover:text-pink-500" />
-                    </a>
-                    <a href="https://x.com/prebuiltui" target="_blank" rel="noreferrer">
-                        <TwitterIcon className="size-5 hover:text-pink-500" />
-                    </a>
-                    <a href="https://www.youtube.com/@prebuiltui" target="_blank" rel="noreferrer">
-                        <YoutubeIcon className="size-6 hover:text-pink-500" />
-                    </a>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24">
+                        <div>
+                            <h4 className="font-bold text-white mb-6">Product</h4>
+                            <ul className="space-y-4 text-zinc-400">
+                                <li><Link to="/generate" className="hover:text-pink-500 transition-colors">Generator</Link></li>
+                                <li><Link to="#pricing" className="hover:text-pink-500 transition-colors">Pricing</Link></li>
+                                <li><Link to="#features" className="hover:text-pink-500 transition-colors">Features</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white mb-6">Company</h4>
+                            <ul className="space-y-4 text-zinc-400">
+                                <li><Link to="/about" className="hover:text-pink-500 transition-colors">About</Link></li>
+                                <li><Link to="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+                                <li><Link to="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white mb-6">Legal</h4>
+                            <ul className="space-y-4 text-zinc-400">
+                                <li><Link to="/privacy" className="hover:text-pink-500 transition-colors">Privacy</Link></li>
+                                <li><Link to="/terms" className="hover:text-pink-500 transition-colors">Terms</Link></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <p className="mt-3 text-center">&copy; {new Date().getFullYear()} <a href="https://prebuiltui.com?utm_source=pixels">Thumblify  GreatStack </a></p>
-            </motion.div>
+
+                <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <p className="text-zinc-500 text-sm">
+                        &copy; {new Date().getFullYear()} ClickNail AI. All rights reserved.
+                    </p>
+
+                    <div className="flex items-center gap-6">
+                        <a href="#" className="text-zinc-400 hover:text-pink-500 transition-colors"><TwitterIcon size={20} /></a>
+                        <a href="#" className="text-zinc-400 hover:text-pink-500 transition-colors"><LinkedinIcon size={20} /></a>
+                        <a href="#" className="text-zinc-400 hover:text-pink-500 transition-colors"><DribbbleIcon size={20} /></a>
+                        <a href="#" className="text-zinc-400 hover:text-pink-500 transition-colors"><YoutubeIcon size={20} /></a>
+                    </div>
+                </div>
+            </div>
         </footer>
     );
 }

@@ -1,10 +1,11 @@
 'use client';
 
-import { CheckIcon, ChevronRightIcon, VideoIcon } from "lucide-react";
+import { CheckIcon, PlayCircle, Sparkles } from "lucide-react";
 import TiltedImage from "../components/TiltImage";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui";
+import { Link } from "react-router-dom";
 
 export default function HeroSection() {
   const specialFeatures = [
@@ -13,96 +14,77 @@ export default function HeroSection() {
     "High CTR templates",
   ];
 
-  const navigate = useNavigate();
   const { user } = useAuth();
 
+
   return (
-    <div className="relative flex flex-col items-center justify-center px-4 md:px-16 lg:px-24 xl:px-32">
-      <div className="absolute top-30 -z-10 left-1/4 size-72 bg-pink-600 blur-[300px]"></div>
-
-      <motion.a
-        href="https://prebuiltui.com?utm_source=pixels"
-        className="group flex items-center gap-2 rounded-full p-1 pr-3 mt-44 text-pink-100 bg-pink-200/15"
-        initial={{ y: -20, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-      >
-        <span className="bg-pink-800 text-white text-xs px-3.5 py-1 rounded-full">
-          NEW
-        </span>
-        <p className="flex items-center gap-1">
-          <span>Generate your first thumbnail for free</span>
-          <ChevronRightIcon
-            size={16}
-            className="group-hover:translate-x-0.5 transition duration-300"
-          />
-        </p>
-      </motion.a>
-
-      <motion.h1
-        className="text-5xl/17 md:text-6xl/21 font-medium max-w-3xl text-center"
-        initial={{ y: 50, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
-      >
-        AI Thumbnail Generator for your{" "}
-        <span className="move-gradient px-3 rounded-xl text-nowrap">
-          Videos.
-        </span>
-      </motion.h1>
-
-      <motion.p
-        className="text-base text-center text-slate-200 max-w-lg mt-6"
-        initial={{ y: 50, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-      >
-        Stop wasting hours on templates and use AI Generated thumbnail in seconds.
-      </motion.p>
+    <section className="relative flex flex-col items-center justify-center pt-32 pb-20 px-4 md:px-16 lg:px-24 xl:px-32 overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-pink-600/20 blur-[120px] rounded-full -z-10 mix-blend-screen animate-pulse" />
 
       <motion.div
-        className="flex items-center gap-4 mt-8"
-        initial={{ y: 50, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+        className="flex flex-col items-center text-center z-10"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <button
-          onClick={() => {
-            if (user) navigate("/generate")
-            else navigate("/login")
-          }}
-          className="bg-pink-600 hover:bg-pink-700 text-white rounded-full px-7 h-11"
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, type: "spring" }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 transition cursor-default"
         >
-          Generate now
-        </button>
+          <Sparkles size={14} className="text-yellow-400" />
+          <span className="text-xs font-medium text-zinc-200">AI-Powered Thumbnail Generation</span>
+        </motion.div>
 
-        <button className="flex items-center gap-2 border border-pink-900 hover:bg-pink-950/50 transition rounded-full px-6 h-11">
-          <VideoIcon strokeWidth={1} />
-          <span>See how it works</span>
-        </button>
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+          Create Viral Thumbnails <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient bg-300%">
+            in Seconds
+          </span>
+        </h1>
+
+        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mb-10 leading-relaxed">
+          Stop wasting hours on design. Let our AI generate high-converting thumbnails for your videos instantly.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link to={user ? "/generate" : "/login"}>
+            <Button size="lg" className="shadow-pink-500/25 shadow-lg">
+              {user ? "Generate Now" : "Start For Free"}
+            </Button>
+          </Link>
+          <Link to="/my-generation">
+            <Button variant="outline" size="lg" icon={<PlayCircle size={18} />}>
+              My Generations
+            </Button>
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm text-zinc-500 font-medium">
+          {specialFeatures.map((feature, i) => (
+            <motion.div
+              key={feature}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + (i * 0.1) }}
+              className="flex items-center gap-2"
+            >
+              <div className="p-1 rounded-full bg-green-500/10 text-green-500">
+                <CheckIcon size={12} />
+              </div>
+              {feature}
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
 
-      <div className="flex flex-wrap justify-center items-center gap-4 md:gap-14 mt-12">
-        {specialFeatures.map((feature, index) => (
-          <motion.p
-            key={index}
-            className="flex items-center gap-2"
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.2, duration: 0.3 }}
-          >
-            <CheckIcon className="size-5 text-pink-600" />
-            <span className="text-slate-400">{feature}</span>
-          </motion.p>
-        ))}
+      <div className="mt-16 w-full max-w-6xl perspective-1000">
+        <TiltedImage />
       </div>
-
-      <TiltedImage />
-    </div>
+    </section>
   );
 }
+
+

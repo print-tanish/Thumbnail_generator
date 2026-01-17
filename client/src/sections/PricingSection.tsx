@@ -1,42 +1,112 @@
-'use client'
-import SectionTitle from "../components/SectionTitle"
-import { pricingData } from "../data/pricing";
-import type { IPricing } from "../types";
-import { CheckIcon } from "lucide-react";
+'use client';
+
+import { CheckIcon, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
+import { Button } from "../components/ui";
+
+const creditPacks = [
+    {
+        credits: 10,
+        price: 9,
+        label: "Starter",
+        popular: false,
+        features: ["10 High-Quality Thumbnails", "Basic Styles", "Standard Support"],
+    },
+    {
+        credits: 50,
+        price: 39,
+        label: "Creator",
+        popular: true,
+        features: [
+            "50 High-Quality Thumbnails",
+            "All Styles Unlocked",
+            "Priority Generation",
+            "Commercial Usage",
+        ],
+    },
+    {
+        credits: 100,
+        price: 69,
+        label: "Agency",
+        popular: false,
+        features: [
+            "100 High-Quality Thumbnails",
+            "All Styles Unlocked",
+            "Instant Generation",
+            "Premium Support",
+            "API Access",
+        ],
+    },
+];
 
 export default function PricingSection() {
     return (
-        <div id="pricing" className="px-4 md:px-16 lg:px-24 xl:px-32">
-            <SectionTitle text1="Pricing" text2="Simple Pricing" text3="Flexible pricing options designed to meet your needs." />
+        <section id="pricing" className="py-24 px-6 max-w-7xl mx-auto relative overflow-hidden">
+            {/* Background Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-pink-600/10 blur-[120px] rounded-full -z-10" />
 
-            <div className="flex flex-wrap items-center justify-center gap-8 mt-20">
-                {pricingData.map((plan: IPricing, index: number) => (
-                    <motion.div key={index} className={`w-72 text-center border border-pink-950 p-6 pb-16 rounded-xl ${plan.mostPopular ? 'bg-pink-950 relative' : 'bg-pink-950/30'}`}
-                        initial={{ y: 150, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
+            <div className="text-center mb-16">
+                <motion.h2
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-6"
+                >
+                    Simple Credit Pricing
+                </motion.h2>
+                <p className="text-zinc-400 max-w-lg mx-auto text-lg">
+                    Pay as you go. No hidden fees or subscriptions.
+                </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-8">
+                {creditPacks.map((pack, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: index * 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`relative flex-1 min-w-[300px] max-w-[350px] p-8 rounded-3xl border transition-all duration-300 ${pack.popular
+                                ? "bg-white/10 border-pink-500/50 shadow-2xl shadow-pink-500/10 scale-105 z-10"
+                                : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                            }`}
                     >
-                        {plan.mostPopular && (
-                            <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-pink-400 rounded-full">Most Popular</p>
+                        {pack.popular && (
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                                <Sparkles size={10} fill="currentColor" />
+                                Most Popular
+                            </div>
                         )}
-                        <p className="font-semibold">{plan.name}</p>
-                        <h1 className="text-3xl font-semibold">${plan.price}<span className="text-gray-500 font-normal text-sm">/{plan.period}</span></h1>
-                        <ul className="list-none text-slate-300 mt-6 space-y-2">
-                            {plan.features.map((feature, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                    <CheckIcon className="size-4.5 text-pink-600" />
-                                    <p>{feature}</p>
+
+                        <div className="text-center mb-6">
+                            <h3 className="text-zinc-300 font-medium tracking-wide uppercase text-sm mb-2">{pack.label}</h3>
+                            <div className="flex items-baseline justify-center gap-1">
+                                <span className="text-4xl font-bold text-white">${pack.price}</span>
+                            </div>
+                            <p className="text-zinc-400 mt-2 font-medium">{pack.credits} Credits</p>
+                        </div>
+
+                        <ul className="space-y-4 mb-8">
+                            {pack.features.map((feature, idx) => (
+                                <li key={idx} className="flex items-center gap-3 text-sm text-zinc-300">
+                                    <div className={`p-1 rounded-full ${pack.popular ? 'bg-pink-500/20 text-pink-500' : 'bg-zinc-800 text-zinc-400'}`}>
+                                        <CheckIcon size={12} strokeWidth={3} />
+                                    </div>
+                                    {feature}
                                 </li>
                             ))}
                         </ul>
-                        <button type="button" className={`w-full py-2.5 rounded-md font-medium mt-7 transition-all ${plan.mostPopular ? 'bg-white text-pink-600 hover:bg-slate-200' : 'bg-pink-500 hover:bg-pink-600'}`}>
-                            Get Started
-                        </button>
+
+                        <Button
+                            variant={pack.popular ? "primary" : "outline"}
+                            className="w-full"
+                        >
+                            Buy {pack.credits} Credits
+                        </Button>
                     </motion.div>
                 ))}
             </div>
-        </div>
+        </section>
     );
 }

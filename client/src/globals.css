@@ -1,36 +1,94 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Internal:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap');
 @import "tailwindcss";
 
 @theme {
-    --font-poppins: "Poppins", sans-serif;
+    --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+
+    --color-background: #09090b;
+    /* Zinc 950 */
+    --color-surface: #0f0f11;
+    /* Slightly lighter */
+    --color-surface-hover: #18191c;
+
+    --color-primary: #ec4899;
+    /* Pink 500 */
+    --color-primary-dark: #db2777;
+    --color-accent: #8b5cf6;
+    /* Violet 500 */
+
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-glow: glow 4s ease-in-out infinite alternate;
 }
 
 body {
-    @apply bg-black text-white text-sm antialiased font-poppins;
+    @apply bg-background text-zinc-100 font-sans antialiased overflow-x-hidden;
+    background-image:
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 40%),
+        radial-gradient(circle at 0% 50%, rgba(236, 72, 153, 0.1), transparent 30%);
+    min-height: 100vh;
 }
 
-body::selection {
-    @apply bg-pink-600 text-white;
+/* Glassmorphism Utilities */
+.glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg;
 }
 
-button {
-    @apply cursor-pointer;
+.glass-card {
+    @apply bg-zinc-900/60 backdrop-blur-md border border-white/5 shadow-xl transition-all duration-300;
 }
 
-.move-gradient {
-    background-image: linear-gradient(to right, var(--color-pink-500), var(--color-pink-300));
-    background-size: 200% 100%;
-    animation: movegradient 5s infinite;
+.glass-card:hover {
+    @apply bg-zinc-800/80 border-white/10 translate-y-[-4px] shadow-2xl;
 }
 
-@keyframes movegradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
+/* 3D Utilities */
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-zinc-950;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-700;
+}
+
+@keyframes float {
+
+    0%,
     100% {
-        background-position: 0% 50%;
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 20px -10px var(--color-primary);
+    }
+
+    to {
+        box-shadow: 0 0 40px -5px var(--color-primary);
     }
 }

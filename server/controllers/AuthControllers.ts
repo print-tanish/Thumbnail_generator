@@ -40,6 +40,7 @@ export const registerUser = async (req: Request, res: Response) => {
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        credits: newUser.credits
       },
     });
   } catch (error) {
@@ -87,6 +88,7 @@ export const loginUser = async (req: Request, res: Response) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        credits: user.credits
       },
     });
   } catch (error: any) {
@@ -143,6 +145,92 @@ export const verifyUser = async (req: Request, res: Response) => {
     console.error("Verify Error:", error);
     return res.status(500).json({
       message: error.message,
+    });
+  }
+};
+
+/* ============================
+   Google Login
+============================ */
+// Import OAuth2Client directly since it's a specific class import
+import { OAuth2Client } from "google-auth-library";
+
+// Initialize client - using a placeholder or env variable
+// IMPORTANT: We need the actual CLIENT_ID for verification to work securely in production
+// but for development we can sometimes proceed if we trust the source or just verify structure.
+// However, google-auth-library REQUIRES a client ID to verify properly.
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID");
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "No credential provided" });
+    }
+
+    // Verify the token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID",
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email not found in token" });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists - check if googleId is linked, if not, link it
+      if (!user.googleId) {
+        user.googleId = googleId;
+        // Verify if avatar exists, if not update it
+        if (!user.avatar && picture) {
+          user.avatar = picture;
+        }
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new User({
+        name: name || "User",
+        email,
+        googleId,
+        avatar: picture,
+      });
+      await user.save();
+    }
+
+    // Set session
+    req.session.isLoggedIn = true;
+    req.session.userId = user._id as any; // Cast to any to avoid type issues with _id
+
+    return res.json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        credits: user.credits,
+        avatar: user.avatar
+      },
+    });
+
+  } catch (error: any) {
+    console.error("Google Login Error:", error);
+    return res.status(500).json({
+      message: "Internal server error during Google Login",
+      error: error.message
     });
   }
 };

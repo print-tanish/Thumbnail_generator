@@ -1,70 +1,87 @@
 'use client'
-import SectionTitle from "../components/SectionTitle";
-import { ArrowUpRight } from "lucide-react";
+import { Zap, Layout, Sliders, Smartphone, Image as ImageIcon, MousePointerClick } from "lucide-react";
 import { motion } from "motion/react";
-import { featuresData } from "../data/features";
-import type { IFeature } from "../types";
 
 export default function FeaturesSection() {
+    const features = [
+        {
+            icon: <Zap className="text-yellow-400" size={32} />,
+            title: "Lightning Fast",
+            desc: "Generate professional thumbnails in under 5 seconds with our optimized AI models.",
+            className: "md:col-span-2 bg-gradient-to-br from-zinc-900 to-zinc-900/50",
+        },
+        {
+            icon: <Layout className="text-pink-400" size={32} />,
+            title: "Smart Layouts",
+            desc: "AI automatically positions text and elements for maximum readability.",
+            className: "bg-zinc-900/50",
+        },
+        {
+            icon: <ImageIcon className="text-blue-400" size={32} />,
+            title: "High Quality",
+            desc: "Crystal clear 4K exports ready for YouTube.",
+            className: "bg-zinc-900/50",
+        },
+        {
+            icon: <Sliders className="text-purple-400" size={32} />,
+            title: "Fully Customizable",
+            desc: "Adjust colors, fonts, and styles to match your brand identity perfectly.",
+            className: "md:col-span-2 bg-gradient-to-br from-zinc-900 to-zinc-900/50",
+        },
+        {
+            icon: <Smartphone className="text-green-400" size={32} />,
+            title: "Mobile Optimized",
+            desc: "Thumbnails looked great on any device size.",
+            className: "bg-zinc-900/50",
+        },
+        {
+            icon: <MousePointerClick className="text-red-400" size={32} />,
+            title: "High CTR Support",
+            desc: "Designed to boost your Click-Through Rate.",
+            className: "bg-zinc-900/50",
+        },
+    ];
+
     return (
-        <div id="features" className="px-4 md:px-16 lg:px-24 xl:px-32">
-            <SectionTitle text1="Features" text2="Why use our generator" text3="Create stunning thumbnails effortlessly" />
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-4 mt-16 px-6">
-                {featuresData.map((feature: IFeature, index: number) => (
-                    <motion.div key={index} className={`${index === 1 ? 'p-px rounded-[13px] bg-linear-to-br from-pink-600 to-slate-800' : ''}`}
-                        initial={{ y: 150, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
+        <section className="py-24 px-6 max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+                <motion.h2
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-6"
+                >
+                    Everything you need to go viral
+                </motion.h2>
+                <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1 }}
+                    className="text-lg text-zinc-400 max-w-2xl mx-auto"
+                >
+                    Stop wrestling with complex design tools. Thumblify gives you professional results without the learning curve.
+                </motion.p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {features.map((feature, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: index * 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`p-8 rounded-3xl border border-white/5 hover:border-white/10 transition duration-300 group hover:shadow-2xl hover:shadow-pink-500/10 ${feature.className}`}
                     >
-                        <div className="p-6 rounded-xl space-y-4 border border-slate-800 bg-slate-950 max-w-80 w-full">
-                            
-                            <img src={feature.icon} alt={feature.title} className="h-10 w-10" />
-                            <h3 className="text-base font-medium text-white">
-                                {feature.title}
-                            </h3>
-                            <p className="text-slate-400 line-clamp-2 pb-4">
-                                {feature.description}
-                            </p>
+                        <div className="mb-6 p-4 rounded-2xl bg-white/5 w-fit group-hover:scale-110 transition duration-300">
+                            {feature.icon}
                         </div>
+                        <h3 className="text-xl font-bold mb-3 text-zinc-100">{feature.title}</h3>
+                        <p className="text-zinc-400 leading-relaxed">{feature.desc}</p>
                     </motion.div>
                 ))}
             </div>
-            <div className="mt-40 relative mx-auto max-w-5xl">
-                <div className="absolute -z-50 size-100 -top-10 -left-20 aspect-square rounded-full bg-pink-500/40 blur-3xl"></div>
-                <motion.p className="text-slate-300 text-lg text-left max-w-3xl"
-                    initial={{ y: 150, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                >
-                    Our AI thumbnails are built to boost your content's appeal and click-through rates. By leveraging advanced algorithms, we ensure that each thumbnail is not only visually striking but also tailored to captivate your target audience. Experience the difference with thumbnails designed to elevate your content's performance.
-                </motion.p>
-                <div className="grid grid-cols-1 md:grid-cols-3 mt-8 gap-10">
-                    <motion.div className="md:col-span-2"
-                        initial={{ y: 150, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ type: "spring", stiffness: 240, damping: 70, mass: 1 }}
-                    >
-                        <img className="h-full w-auto" src="/assets/features-showcase-1.png" alt="features showcase" width={1000} height={500} />
-                    </motion.div>
-                    <motion.div className="md:col-span-1"
-                        initial={{ y: 150, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.15, type: "spring", stiffness: 320, damping: 70, mass: 1 }}
-                    >
-                        <img src="/assets/features-showcase-2.png" alt="features showcase" width={1000} height={500} className="hover:-translate-y-0.5 transition duration-300" />
-                        <h3 className="text-[24px]/7.5 text-slate-300 font-medium mt-6"> Boost yourself with AI generated thumbnails</h3>
-                        <p className="text-slate-300 mt-2">PrebuiltUI empowers you to build beautifully and scale effortlessly.</p>
-                        <a href="https://prebuiltui.com" className="group flex items-center gap-2 mt-4 text-pink-600 hover:text-pink-700 transition">
-                            Start generating free
-                            <ArrowUpRight className="size-5 group-hover:translate-x-0.5 transition duration-300" />
-                        </a>
-                    </motion.div>
-                </div>
-            </div>
-        </div>
+        </section>
     );
 }

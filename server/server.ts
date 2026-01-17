@@ -8,6 +8,7 @@ import connectDB from "./configs/db.js";
 import AuthRouter from "./routes/AuthRoutes.js";
 import ThumbnailRouter from "./routes/ThumbnailRoutes.js";
 import UserRouter from "./routes/UserRoutes.js";
+import FeedbackRouter from "./routes/FeedbackRoutes.js";
 
 /* ---------- SESSION TYPES ---------- */
 declare module "express-session" {
@@ -64,10 +65,10 @@ const startServer = async () => {
     });
 
     app.use("/api/auth", AuthRouter);
-
     app.use('/api/thumbnail', ThumbnailRouter);
+    app.use('/api/user', UserRouter);
+    app.use('/api/feedback', FeedbackRouter);
 
-    app.use('/api/user', UserRouter)
     app.listen(port, () => {
       console.log(`Server is running at http://localhost:${port}`);
     });
