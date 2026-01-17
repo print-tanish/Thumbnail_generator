@@ -27,12 +27,14 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"],
+    origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "https://nailclick.vercel.app"],
     credentials: true,
   })
 );
 
 app.use(express.json());
+
+app.set('trust proxy', 1)
 
 app.use(
   session({
@@ -42,9 +44,9 @@ app.use(
 
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      secure: false, // Set to true if using https
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
 
     store: MongoStore.create({
