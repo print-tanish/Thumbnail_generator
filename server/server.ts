@@ -65,7 +65,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // Trust first key proxy (Vercel)
 
 // Connect to DB
 connectDB().catch(err => {
@@ -80,9 +80,9 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" || process.env.VERCEL === "1",
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") ? "none" : "lax",
     },
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI as string,
