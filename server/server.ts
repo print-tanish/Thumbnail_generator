@@ -25,17 +25,15 @@ const port = process.env.PORT || 3000;
 
 /* ---------- MIDDLEWARE ---------- */
 
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "https://nailclick.vercel.app"],
-    credentials: true,
-  })
-);
-
-app.options('*', cors({
+const corsOptions = {
   origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "https://nailclick.vercel.app"],
   credentials: true,
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Accept-Version", "Content-Length", "Content-MD5", "Date", "X-Api-Version"]
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
