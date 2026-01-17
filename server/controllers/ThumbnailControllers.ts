@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import Thumbnail from "../models/Thumbnail.js";
 import cloudinary from "../configs/cloudinary.js";
-// Imports removed
 
 /* ----------------------------------
    STYLE PROMPTS
@@ -48,9 +47,6 @@ const colorSchemeDescriptions = {
 } as const;
 
 /* ----------------------------------
-   GENERATE THUMBNAIL
----------------------------------- */
-/* ----------------------------------
    TEMPLATE PACK PROMPTS
 ---------------------------------- */
 const templatePackPrompts = {
@@ -65,6 +61,15 @@ const templatePackPrompts = {
 ---------------------------------- */
 export const generateThumbnail = async (req: Request, res: Response) => {
   try {
+    // VALIDATE CLOUDINARY FIRST
+    if (!process.env.CLOUDINARY_URL || !process.env.CLOUDINARY_URL.startsWith("cloudinary://")) {
+      console.error("Cloudinary not configured properly");
+      return res.status(500).json({
+        message: "Server configuration error: Image upload service not available",
+        error: "cloudinary_not_configured"
+      });
+    }
+
     const { userId } = req.session;
 
     if (!userId) {
@@ -78,7 +83,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       aspect_ratio,
       color_scheme,
       templatePack,
-    } = req.body; // req.body might be textual if multipart, express/multer handles this.
+    } = req.body;
 
     // Check Credits First
     const User = (await import("../models/User.js")).default;
@@ -107,21 +112,16 @@ export const generateThumbnail = async (req: Request, res: Response) => {
     });
 
     // Ensure dotenv & GenAI
-    // @ts-ignore
     const dotenv = await import("dotenv");
     dotenv.config();
 
-    // @ts-ignore
     const { GoogleGenAI } = await import("@google/genai");
-
-    // Cloudinary config logic moved to server/configs/cloudinary.ts
 
     /* ----------------------------------
        HANDLE FACE UPLOAD (Optional)
     ---------------------------------- */
     let faceDescription = "";
 
-    // @ts-ignore
     if (req.file) {
       fs.appendFileSync(path.join(process.cwd(), "debug.log"), `\n--- Face Upload Start ---\n`);
       fs.appendFileSync(path.join(process.cwd(), "debug.log"), `File received: ${req.file.originalname} | Size: ${req.file.size} | Mime: ${req.file.mimetype}\n`);
@@ -132,7 +132,6 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
 
       const tempUploadPath = path.join(imagesDir, `upload-${Date.now()}.png`);
-      // @ts-ignore
       fs.writeFileSync(tempUploadPath, req.file.buffer);
 
       try {
@@ -205,8 +204,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       prompt += `Additional details: ${user_prompt}. `;
     }
 
-    prompt += `The thumbnail should be ${aspect_ratio || "16:9"
-      }, visually stunning, designed to maximize click-through rate.`;
+    prompt += `The thumbnail should be ${aspect_ratio || "16:9"}, visually stunning, designed to maximize click-through rate.`;
 
     console.log("FINAL GENERATION PROMPT:", prompt);
     fs.appendFileSync(path.join(process.cwd(), "debug.log"), `FINAL GENERATION PROMPT: ${prompt}\n\n`);
@@ -275,7 +273,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       message: error.message || "Internal server error",
-      stack: error.stack
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined
     });
   }
 };
