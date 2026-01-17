@@ -55,7 +55,7 @@ const corsOptions = {
 
 // Apply CORS before other middleware
 app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
+// app.options(/.*/, cors(corsOptions)); // Removed to prevent Express 5 wildcard issues
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
