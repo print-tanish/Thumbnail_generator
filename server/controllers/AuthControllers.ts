@@ -103,6 +103,9 @@ export const loginUser = async (req: Request, res: Response) => {
    Logout User
 ============================ */
 export const logoutUser = async (req: Request, res: Response) => {
+  // Clear the cookie explicitly
+  res.clearCookie('connect.sid');
+
   req.session.destroy((error: any) => {
     if (error) {
       console.error(error);
