@@ -23,6 +23,10 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+if (!process.env.MONGODB_URI) {
+  console.error("Critical Error: MONGODB_URI is not defined.");
+}
+
 /* ---------- MIDDLEWARE ---------- */
 
 const corsOptions = {
@@ -51,15 +55,15 @@ const corsOptions = {
 
 // Apply CORS before other middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1);
 
-// Connect to DB
-connectDB();
+// Connect to DB immediately (Mongoose buffers requests)
+connectDB().catch(err => console.error("Top-level DB connection error:", err));
 
 // Session middleware
 app.use(
