@@ -3,47 +3,68 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Cloudinary will automatically use CLOUDINARY_URL from environment variables
-// BUT we strictly sanitize it here to prevent common copy-paste errors (e.g. "CLOUDINARY_URL=cloudinary://...")
+// CRITICAL FIX: The Cloudinary SDK attempts to automatically parse 'CLOUDINARY_URL'
+// if it exists in process.env. If malformed, it throws a crash.
+// We capture it, DELETE it from env to stop different SDK behavior,
+// and then manually configure the SDK with sanitized values.
 
-if (process.env.CLOUDINARY_URL) {
-    let url = process.env.CLOUDINARY_URL;
+const rawUrl = process.env.CLOUDINARY_URL;
 
-    // 1. Sanitize: Remove "CLOUDINARY_URL=" prefix if present
-    if (url.startsWith("CLOUDINARY_URL=")) {
-        console.log("Sanitizing CLOUDINARY_URL...");
-        url = url.replace("CLOUDINARY_URL=", "").trim();
-        process.env.CLOUDINARY_URL = url; // Update env for SDK
-    }
+if (rawUrl) {
+    // 1. Delete from env to prevent SDK auto-crash
+    delete process.env.CLOUDINARY_URL;
 
-    if (url.startsWith("cloudinary://")) {
-        try {
-            // 2. Parse manually to ensure specific config is applied
+    try {
+        let url = rawUrl;
+
+        // 2. Aggressive Sanitization
+        // Remove "CLOUDINARY_URL=" prefix (case insensitive)
+        url = url.replace(/CLOUDINARY_URL=/i, "");
+
+        // Remove quotes if user added them
+        url = url.replace(/['"]/g, "");
+
+        // Remove whitespace
+        url = url.trim();
+
+        // 3. Ensure Protocol
+        if (!url.startsWith("cloudinary://")) {
+            // If user just pasted the key/secret part without protocol (rare, but possible)
+            // or if it's completely broken.
+            console.error("Cloudinary Config Error: URL is missing 'cloudinary://' protocol.");
+        } else {
+            // 4. Manual Parse
             // Format: cloudinary://<api_key>:<api_secret>@<cloud_name>
-            const [auth, cloud_name] = url.split('@');
-            const [start, api_secret] = auth.split(':'); // api_key might have : but usually safe, wait, structure is cloudinary://key:secret
-
-            // Better regex approach:
             const regex = /^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/;
             const match = url.match(regex);
 
             if (match) {
+                const [, apiKey, apiSecret, cloudName] = match;
+
                 cloudinary.config({
-                    cloud_name: match[3],
-                    api_key: match[1],
-                    api_secret: match[2],
+                    cloud_name: cloudName,
+                    api_key: apiKey,
+                    api_secret: apiSecret,
                     secure: true
                 });
-                console.log("Cloudinary configured explicitly from URL.");
+
+                console.log(`Cloudinary configured successfully for cloud: ${cloudName}`);
             } else {
-                console.warn("Could not parse Cloudinary URL with regex, relying on automatic SDK configuration.");
+                console.error("Cloudinary Config Error: Could not parse URL structure.");
             }
-        } catch (e) {
-            console.error("Error parsing Cloudinary URL:", e);
         }
-    } else {
-        console.error("Invalid Cloudinary URL Protocol: URL does not start with 'cloudinary://'");
-        // Don't crash here, let the SDK throw if it must, or we might log credentials.
+    } catch (error) {
+        console.error("Cloudinary Config Exception:", error);
+    }
+} else {
+    // Check if separate vars are set (fallback)
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+            secure: true
+        });
     }
 }
 
